@@ -1,0 +1,132 @@
+#include <iostream>
+
+using namespace std;
+int COMPARE (char* a, char* b);
+char* LEFT (char* a,int b);
+char* RIGHT (char* a,int b);
+char* MID (char* a,int b, int c);
+int INSTR (char* a, char* b, int c);
+int INSTRROW (char* a, char* b, int c);
+int LEN (char* a);
+char s0[]={"hell"};
+char s1[]={"Hello"};
+
+
+int main()
+{
+    cout<<COMPARE(s0,s1)<<endl;
+    cout<<LEFT("hello",3)<<endl;
+    cout<<RIGHT("hello",3)<<endl;
+    cout<<MID("paradise",5, 3)<<endl;
+    cout<<INSTR("paradise", "dis",2)<<endl;
+    cout<<INSTRROW("paradise", "ara",7)<<endl;
+}
+int COMPARE (char* a, char* b)
+{
+    int i=0;
+    while (int(*(a+i))%32==int(*(b+i++))%32); //32-разница между строчными и заглавными буквами в таблице ASCII
+    if (i==LEN(a) && i<LEN(b)) //если одно из слов короче другого при том, что оно является началом второго
+    {
+        return -1;
+    }
+    else
+    {
+        if (i==LEN(b)&& i<LEN(a))
+        {
+            return 1;
+        }
+    }
+    i--;
+    if (int(*(a+i))%32>int(*(b+i))%32)
+        return 1;
+    else
+    {
+        if (int(*(a+i))%32<int(*(b+i))%32)
+            return -1;
+        else
+            return 0;
+    }
+
+}
+
+char* LEFT (char* a,int b)
+{
+    char *st= new char [b];
+    int i=0;
+    for (i=0;i<b;i++)
+        *(st+i)=*(a+i);
+    return st;
+    delete [] st;
+}
+
+char* RIGHT (char* a,int b)
+{
+    char *st= new char [b];
+    int i=0;
+    int k=LEN(a)-b;
+    for (i=k+b-1;i>k-1;i--)
+        *(st+i-k)=*(a+i);
+    return st;
+    delete [] st;
+}
+
+char* MID (char* a,int b, int c)
+{
+    char *st= new char [b];
+    int i=0;
+    for (i=b-1;i<b+c-1;i++)
+        *(st+i-b+1)=*(a+i);
+    return st;
+    delete [] st;
+}
+
+int INSTR (char* a, char* b, int c)
+{
+    int k=0;
+    for (int i=c-1;i<LEN (a);i++)
+    {
+        if (*(a+i)==*b)
+        {
+            for (int j=i+1;j<i+LEN(b);j++)
+            {
+                if (*(a+j)!=*(b+j-i))
+                    k++;
+            }
+            if (k==0)
+                return i+1;
+            else
+                k=0;
+        }
+    }
+    return -1;
+
+}
+
+int INSTRROW (char* a, char* b, int c)
+{
+    int k=0;
+    for (int i=c-1;i>=0;i--)
+    {
+        if (*(a+i)==*(b+LEN(b)-1))
+        {
+            for (int j=i-1;j>i-LEN(b);j--)
+            {
+                if (*(a+j)!=*(b+j-i+LEN(b)-1))
+                    k++;
+            }
+            if (k==0)
+                return i+2-LEN(b);
+            else
+                k=0;
+        }
+    }
+    return -1;
+}
+
+int LEN (char* a)
+{
+    int i=0;
+    while (*(a+i++));
+    return i-1;
+}
+
