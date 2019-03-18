@@ -1,0 +1,49 @@
+#include <iostream>
+#include<fstream>
+#include<cmath>
+
+using namespace std;
+const int N=40;
+int x[N], y[N];
+void READ ();
+int COUNT (int a[], int b[]);
+
+int main()
+{
+   READ();
+   cout<<COUNT(x,y);
+   return 0;
+}
+
+void READ ()
+{
+    fstream file ("input.txt");
+    if (!file)
+        cout<<"error"<<endl;
+    ifstream fin("input.txt");
+    for (int i=0; i<N; i++)
+        fin>>x[i]>>y[i];
+}
+
+int COUNT (int a[], int b[])
+{
+    int colors_num[N];
+    int color=1;
+    for (int i=0;i<N;i++)
+        colors_num[i]=0;
+    for (int i=0;i<N;i++)
+    {
+        if(colors_num[i]==0)
+        {
+            colors_num[i]=color;
+            color++;
+        }
+        for(int j=0; j<N; j++)
+        {
+            int dist=abs(sqrt((a[j]-a[i])*(a[j]-a[i])+(b[j]-b[i])*(b[j]-b[i])));
+            if (dist<=1)
+                colors_num[j]=colors_num[i];
+        }
+    }
+    return color;
+}
