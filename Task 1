@@ -17,10 +17,10 @@ int main()
 
 void READ ()
 {
-    fstream file ("input.txt");
+    fstream file ("input1.1");
     if (!file)
         cout<<"error"<<endl;
-    ifstream fin("input.txt");
+    ifstream fin("input1.1");
     for (int i=0; i<N; i++)
         fin>>x[i]>>y[i];
 }
@@ -28,21 +28,66 @@ void READ ()
 int COUNT (int a[], int b[])
 {
     int colors_num[N];
-    int color=1;
+    int color=0;
     for (int i=0;i<N;i++)
         colors_num[i]=0;
     for (int i=0;i<N;i++)
     {
+        bool prev=false;
+        bool prevv=false;
         if(colors_num[i]==0)
         {
-            colors_num[i]=color;
             color++;
+            colors_num[i]=color;
+
+            for(int j=0; j<N; j++)
+            {
+                double dist=abs(sqrt((a[j]-a[i])*(a[j]-a[i])+(b[j]-b[i])*(b[j]-b[i])));
+                if (dist<=1)
+                {
+                    if (j>i)
+                    {
+                        if (colors_num[j]==0)
+                            colors_num[j]=colors_num[i];
+                        else
+                        {
+                            for(int k=0; k<N; k++)
+                            {
+                                if (k!=i && colors_num[k]==colors_num[i])
+                                    colors_num[k]=colors_num[j];
+                            }
+                            colors_num[i]=colors_num[j];
+                            if (prev==false)
+                            {
+                                color--;
+                                prev=true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                       if (i!=j && prevv==false)
+                           prevv=true;
+                    }
+                }
+            }
+
         }
-        for(int j=0; j<N; j++)
+        if (prevv==true && prev==false)
+                color--;
+        else
         {
-            int dist=abs(sqrt((a[j]-a[i])*(a[j]-a[i])+(b[j]-b[i])*(b[j]-b[i])));
-            if (dist<=1)
-                colors_num[j]=colors_num[i];
+            for(int j=0; j<i; j++)
+            {
+                int buf=0;
+                double dist=abs(sqrt((a[j]-a[i])*(a[j]-a[i])+(b[j]-b[i])*(b[j]-b[i])));
+                if (dist<=1 && colors_num[i]!=colors_num[j] && colors_num[i]!=buf)
+                {
+                    buf=colors_num[j];
+                    color--;
+                    colors_num[j]=colors_num[i];
+                }
+            }
         }
     }
     return color;
