@@ -1,0 +1,32 @@
+#include <iostream>
+
+using namespace std;
+
+int main()
+{
+    cout << "Enter a number" << endl;
+    int xInDec;
+    cin>>xInDec;
+    unsigned long long xInP=0;
+    unsigned long long deg=1;
+    for (int i=0; xInDec>0; i++)
+    {
+        int y=(xInDec%3);
+        for(int j=0; j<2; j++)
+        {
+            xInP+=deg*y;
+            deg*=10;
+        }
+        xInDec/=3;
+    }
+    deg=10;
+    xInDec=0;
+    int th=1;
+    for (int i=0; xInP>0; i++)
+    {
+        xInDec+=(xInP%deg)*th;
+        th*=3;
+        xInP/=deg;
+    }
+    return 0;
+}
