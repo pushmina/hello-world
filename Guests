@@ -1,0 +1,64 @@
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+void Read();
+int** Fill(int t,int N, int* &n, int* &m);
+void Write (int** guests, int r, int c);
+
+int main()
+{
+    Read();
+}
+
+void Read()
+{
+    int N;
+    ifstream fin("02");
+    fin>>N;
+    int* n= new int [N];
+    int* m= new int [N];
+    for (int i=0; i<N; i++)
+        fin>>n[i]>>m[i];
+    for (int t=0; t<N;t++)  //amount of tests
+        Write(Fill(t, N, n, m), n[t], m[t]);
+    delete [] n;
+    delete [] m;
+}
+
+int** Fill(int t, int N,int* &n, int* &m)
+{
+    int** guests=new int* [n[t]];
+    for (int j=0; j<n[t];j++)
+        guests[j]=new int [m[t]];
+    int num=n[t]*m[t];
+    int ct=0;
+    while (num!=0)            //unless all guests sit
+    {
+        for (int i=0; i<n[t];i++)
+        {
+            for (int j=0; j<m[t]; j++)
+            {
+                if (i+j==ct)
+                {
+                    guests[i][j]=num;
+                    num--;
+                }
+            }
+        }
+        ct++;
+    }
+    return guests;
+}
+
+void Write (int**guests, int r, int c)
+{
+    ofstream fout("output.txt");
+    for (int i=0; i<r; i++)
+    {
+        for (int j=0; j<c;j++)
+            fout<<guests[i][j]<<"  ";
+        fout<<endl;
+    }
+    delete [] guests;
+}
