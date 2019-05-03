@@ -1,0 +1,251 @@
+#include <iostream>
+#include<fstream>
+#include <cmath>
+
+using namespace std;
+void Read();  //считывает в массив 200х200
+void Seek();
+void FindExtremePoints(int i, int j, int &up, int &down, int &left_ep, int &right_ep);  //находит крайние точки (самые верхнюю, нижнюю, правую и левую точки в фигуре)
+void CountOne(double &n, int &amount, int up, int down, int left_ep, int right_ep); //считает количество в квадрате из крайних точек. По сути, получается площадь
+void CountShapes(int i, int j, double &n, int &amount, int up, int down, int left_ep, int right_ep);
+void TriangleAnalysis(double &P, int &mRow, int &mColumn, int up, int down, int left_ep, int right_ep); //определяет центр, периметр треугольника
+const int N=200;
+char x;
+int point[200][200];
+int tr=0, cir=0, squ=0;  //счетчики фигур
+ofstream fout("output.txt");
+
+int main()
+{
+    Read();
+    Seek();
+}
+
+void Read ()
+{
+    fstream file ("input3.txt");
+    if (!file)
+        cout<<"error"<<endl;
+    ifstream fin("input3.txt");
+    for (int i=0; i<N; i++)
+    {
+        for (int j=0; j<N; j++)
+        {
+            fin>>x;
+            point[i][j]=int(x-'0');
+        }
+    }
+}
+
+void Seek()
+{
+    int up, down, left_ep, right_ep; //крайние точки
+    double n;
+    int amount;
+
+    for (int i=0; i<N; i++)
+    {
+        for (int j=0; j<N; j++)
+        {
+            if (point[i][j]==1 && point[i-1][j-1]==0 && point[i-1][j]==0 && point[i-1][j+1]==0)  //если над найденной единицей нет больше единиц
+            {
+                FindExtremePoints(i,j, up, down, left_ep, right_ep);
+                if (up!=down && left_ep!=right_ep)                      //если найденная фигура не является точкой или фигурой в толщину 1 строки/столбца
+                    CountOne(n, amount, up, down, left_ep, right_ep);
+                else
+                    continue;
+                CountShapes(i,j,n, amount, up, down, left_ep, right_ep); //оперделяет, что за фигура и фигура ли вообще, обновляет счетчик
+            }
+        }
+    }
+    fout<<endl<<"square="<<squ<<" circle="<<cir<<" triangle="<<tr<<endl;
+}
+
+void FindExtremePoints(int i, int j, int &up, int &down, int &left_ep, int &right_ep)
+{
+    bool found=false;                  //найдены все крайние точки
+    int column=1;
+    int row=0;
+    up=i; down=i;right_ep=j;left_ep=j;
+    while (!found)
+    {
+        while (point[i+row][right_ep+column]!=0) //пока справа есть единица
+            column++;
+        right_ep+=column-1;
+        column=1;
+        while (point[i+row][left_ep-column]!=0)    //пока слева есть единица
+            column++;
+        left_ep-=column-1;
+        row++;                                  //переход на следующий ряд
+        column=1;
+        down++;
+        if (point[i+row][left_ep-1]==0 && point[i+row][left_ep+1]==0 && point[i+row][left_ep]==0 && point[i+row][right_ep-1]==0 && point[i+row][right_ep+1]==0 && point[i+row][right_ep]==0)
+        { // если под правой и левой точками нет единиц
+            for (int k=left_ep;k<=right_ep;k++)
+            {
+                if (point[i+row][k]==1) //если в следующем ряду между левой и правой точками ещё есть единицы
+                {
+                    found=false;    //значит границы ещё не найдены, продолжаем искать
+                    break;
+                }
+                else
+                    found=true;
+            }
+        }
+    }
+    down--;
+}
+
+void CountOne(double &n, int &amount, int up, int down, int left_ep, int right_ep)
+{
+    n=0; amount=0;      //n счетчик единиц в квадрате, amount - количество единиц,которые окружены по крайней мере пятью единицами (обычно именно такие и встречаются, если это фигура, а не шум)
+    for (int row=up; row<=down; row++)
+    {
+        for (int column=left_ep; column<=right_ep; column++)
+        {
+            int around=0;
+            if (point[row][column]==1)
+            {
+                n++;
+                for (int k=-1; k<2;k++)
+                {
+                    for (int l=-1; l<2;l++)
+                    {
+                        if (point[row+k][column+l])
+                            around++;
+                    }
+                }
+                around--;
+                if (around>=5)
+                    amount++;
+            }
+        }
+    }
+}
+
+void CountShapes(int i, int j, double &n, int &amount, int up, int down, int left_ep, int right_ep)
+{
+    int mRow, mColumn; //серидина ряда и середина строки
+    double P;
+    int a=down-up;
+    int b=right_ep-left_ep;
+    double sToS=n/((a+1)*(b+1));//-- отношение площади фигуры, к площади квадрата из крайних точек;
+    if (sToS>0.6 && amount/n>0 && a>4 && b>4)
+    {//  amount/n -- отношение окруженных единиц ко всем единицам
+        if (sToS>0.9)
+        {
+            squ++;
+            fout<<"SQUARE     i="<<i<<" j="<<j<<endl;
+            P=(a+1)*2+(b+1)*2;
+            mRow=(down+up)/2;
+            mColumn=(left_ep+right_ep)/2;
+        }
+        else
+        {
+            if(sToS<0.8)
+            {
+                cir++;
+                fout<<"CIRCLE     i="<<i<<" j="<<j<<endl;
+                P=sqrt(n*3.14)*2;
+                mRow=up+(a)/2;
+                mColumn=left_ep+(b)/2;
+            }
+        }
+        fout<<"   S="<<n<<" P="<<P<<" Center=["<<mRow<<"]["<<mColumn<<"]"<<endl;
+    }
+    else
+    {
+        if (amount/n>0.25 && a>4 && b>4)
+        {
+            tr++;
+            fout<<"TRIANGLE   i="<<i<<" j="<<j<<endl;
+            TriangleAnalysis(P, mRow, mColumn, up, down, left_ep, right_ep);
+            fout<<"   S="<<n<<" P="<<P<<" Center=["<<mRow<<"]["<<mColumn<<"]"<<endl;
+        }
+    }
+    for (int row=up; row<=down; row++)
+    {
+        for (int column=left_ep; column<=right_ep; column++) //DELETE THIS SHAPE
+            point[row][column]=0;
+    }
+}
+
+void TriangleAnalysis(double &P, int &mRow, int &mColumn, int up, int down, int left_ep, int right_ep)
+{
+    double a, b, cc;
+    int r[]={0,0,0,0,0}; //координаты y
+    int c[]={0,0,0,0,0}; //координаты x
+    int maxRow=0;      //максимальная длина
+    int maxRowNumber; //номер ряда с максимальной длиной
+    for (int row=up; row<=down; row++)
+    {
+        int rowLength=0;
+        for (int column=left_ep; column<=right_ep; column++)
+        {
+            if (row==up)
+            {
+                if (point[row][column]==1) //присваеваем вершине 1 координаты x и y - самую верхнюю точку
+                {
+                    r[1]=row;
+                    c[1]=column;
+                }
+            }
+            else
+            {
+                if (point[row][column]==1)
+                    rowLength++;          //изменяем длину ряда
+            }
+        }
+        if (rowLength>=maxRow)   //если длина текущего ряда больше длина максимального
+        {
+            maxRow=rowLength;     //запоминаем длину и номер максимального ряда
+            maxRowNumber=row;
+        }
+    }
+    for (int column=left_ep; column<=right_ep; column++)
+    {
+        if (point[maxRowNumber][column]==1 && point[maxRowNumber][column-1]==0) //из ряда с максимальной длиной запоминаем крайнюю точку слева
+        {
+            r[2]=r[3]=maxRowNumber;
+            c[2]=column;
+        }
+        else
+        {
+            if (point[maxRowNumber][column]==1 && point[maxRowNumber][column+1]==0)//из ряда с максимальной длинной запоминаем крайнюю точку справа
+                c[3]=column;
+        }
+    }
+    if (maxRowNumber!=down)    //есди ряд с максимальной длиной не самый последний в этом треугольнике
+    {
+        r[4]=r[5]=down;
+        for (int column=left_ep; column<=right_ep; column++) //из нижнего ряда запоминаем крайнюю точку слева
+        {
+            if (point[down][column]==1 && point[down][column-1]==0)
+                c[4]=column;
+            else
+                if (point[down][column]==1 && point[down][column+1]==0) //из нижнего ряда запоминаем крайнюю точку справа
+                    c[5]=column;
+        }
+        if (abs(c[4]-c[2])>abs(c[5]-c[3])) //если между крайними левыми точками максимального и нижнего рядов расстояние больше, чем расстояние между их крайними правыми точками
+        {
+            r[3]=r[5]; //вершиной является крайняя правая точка нижнего ряда
+            c[3]=c[5];
+        }
+        else
+        {
+            r[2]=r[4]; //вершиной является крайняя левая точка нижнего ряда
+            c[2]=c[4];
+        }
+    }
+    a=sqrt( (r[2]-r[1])*(r[2]-r[1]) + (c[2]-c[1])*(c[2]-c[1]) ); //длина стороны треугольника
+    b=sqrt( (r[3]-r[1])*(r[3]-r[1]) + (c[3]-c[1])*(c[3]-c[1]) );
+    cc=sqrt( (r[2]-r[3])*(r[2]-r[3]) + (c[2]-c[3])*(c[2]-c[3]) );
+    P=a+b+cc;
+    mRow=(r[3]+r[2])/2;  //середина отрезка по y
+    mRow= abs(mRow - ((mRow-r[1])/3));//точка пересечения медиан лежит на расстоянии 2/3 длины медианы
+    mColumn=(c[3]+c[2])/2; //середина отрезка по x
+    if(c[1]>mColumn)
+        mColumn+=(abs(mColumn-c[1])/3);
+    else
+        mColumn-=(abs(mColumn-c[1])/3);
+}
