@@ -1,0 +1,94 @@
+//если менять число, для которого нужно сделать перестановку, то нужно менять n и Е
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+
+using namespace std;
+int Factorial (int n);
+void fillArray (int* &mask, int n, int N); //заполняет массив с всевозможными вариантами перестановок
+bool maskIsEmpty(int* mask, int N);
+const int E=1E7;  //степень 10. показывает количество разрядов, в зависимости от n
+
+int main()
+{
+    ofstream fout("output.txt");
+    int n=8; //число, для которого нужно сделать суперперестановку
+    int N=Factorial(n); //количество перестановок
+    int* mask= new int [N];
+    fillArray(mask, n, N); //заполняем массив всеми перестановками
+    fout<<mask[0];
+    int cur=mask[0];
+    mask[0]=0;
+    int P=E;
+    bool found=false;
+    while (!maskIsEmpty(mask, N)) //пока все перестановки не использованы
+    {
+        cur=(cur%E)*10; //смещаем перестановку на один разряд влево
+        for (int i=1;i<N;i++)
+        {
+            if (cur/(E/P*10)==mask[i]/(E/P*10)) //находим в массиве совпадающую перестановку, без нескольких первых разрядов (зависит от Р)
+            {
+                cur=mask[i];
+                fout<<mask[i]%(E/P*10); //выводим несколько первых разрядов
+                mask[i]=0;  //удаляем использованную перестановку
+                found=true;
+                P=E;
+                break;
+            }
+        }
+        if (found==false) //если такая перестановка не найдена, ещё на один разряд смещаем число влево
+            P/=10;
+        found=false;
+    }
+    return 0;
+}
+
+int Factorial (int n)
+{
+    int N=1;
+    for (int i=n; i>0; i--)
+         N*=i;
+    return N;
+}
+
+void fillArray (int* &mask, int n, int N)
+{
+    for (int j=0; j<N; j++)
+        mask[j]=0;
+    for (int i=1; i<=n; i++)
+    {
+        int k=Factorial(n-i);//число, через которое чередуется позиция этой цифры
+        int p=E;    //степень десяти. Нужно для подстановки цифры в нужный разряд
+        for (int j=0; j<N; j++)
+        {
+            if ((mask[j]/p)%10!=0) //если в этом разряде в одной из перестановок уже есть какое-то число
+            {
+                do
+                {
+                    p/=10; //уменьшаем степень, чтобы сместить позицию
+                    if (p==0) //если позиция=0, увеличиваем степень, чтобы начать с крайнего разряда  элемента
+                        p=E;
+                }
+                while((mask[j]/p)%10!=0); // пока не найдём пустой разряд
+            }
+            mask[j]+=p*i;
+
+            if( (j+1)%k==0) //если номер перестановки соответствует числу чередования
+                p/=10; //изменияем разряд, в который подставляем число
+            if (p==0)
+                p=E;
+        }
+    }
+}
+
+bool maskIsEmpty(int* mask, int N)
+{
+    for (int i=0; i<N; i++)
+    {
+        if (mask[i]>0)
+            return false;
+    }
+    return true;
+}
+
+
